@@ -38,7 +38,7 @@ sub can_compile_executable {
 	write_file($source_handle, $executable_code);
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
-	my ($cc, $ccflags, $ldflags, $libs) = map { $config->get($_) } qw/cc ccflags ldflags libs/;
+	my ($cc, $ccflags, $ldflags, $libs) = map { $args{$_} || $config->get($_) } qw/cc ccflags ldflags libs/;
 	my $executable = catdir($tempdir, basename($source_name, '.c') . $config->get('_exe'));
 
 	my $command;
