@@ -54,42 +54,71 @@ sub can_compile_executable {
 	}
 
 	print "$command\n" if not $args{quiet};
-	system($command) and return;
+	system $command and return;
 	return not system(rel2abs($executable));
 }
 
-my $loadable_object_code = <<'END';
-#include <stdlib.h>
-#include <stdio.h>
+my $loadable_object_format = <<'END';
+#define PERL_NO_GET_CONTEXT
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
 
-#ifdef __cplusplus
-extern "C"
-#else
-extern
+XS(exported) {
+#ifdef dVAR
+	dVAR;
+#endif
+	dXSARGS;
+
+	PERL_UNUSED_VAR(cv); /* -W */
+	PERL_UNUSED_VAR(items); /* -W */
+
+	XSRETURN_IV(42);
+}
+
+#ifndef XS_EXTERNAL
+#define XS_EXTERNAL(foo) XS(foo)
 #endif
 
-void foo() {
-	puts("It seems we've got a working compiler");
+XS_EXTERNAL(boot_compilet) {
+#ifdef dVAR
+	dVAR;
+#endif
+	dXSARGS;
+
+	PERL_UNUSED_VAR(cv); /* -W */
+	PERL_UNUSED_VAR(items); /* -W */
+
+	newXS("%s::exported", exported, __FILE__);
 }
+
 END
+
+my $counter = 1;
 
 sub can_compile_loadable_object {
 	my (%args) = @_;
 
 	my $tempdir = tempdir(DIR => curdir, CLEANUP => 1);
 	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c');
+
+	my $shortname = '_Loadable' . $counter++;
+	my $package = "ExtUtils::HasCompiler::$shortname";
+	my $loadable_object_code = sprintf $loadable_object_format, $package;
 	write_file($source_handle, $loadable_object_code);
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
-	my ($cc, $ccflags, $cccdlflags, $lddlflags, $libs) = map { $args{$_} || $config->get($_) } qw/cc ccflags cccdlflags lddlflags libs/;
+	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $perllibs, $archlibexp) = map { $args{$_} || $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags perllibs archlibexp/;
+	my $incdir = catdir($archlibexp, 'CORE');
+
 	my $loadable_object = catdir($tempdir, basename($source_name, '.c') . '.' . $config->get('dlext'));
 
 	my $command;
 	if (is_os_type('Unix') || $Config{gccversion}) {
-		$command = "$cc $ccflags $cccdlflags $lddlflags -o $loadable_object $source_name";
+		$command = "$cc $ccflags -I$incdir $cccdlflags $lddlflags -o $loadable_object $source_name";
 	}
 	elsif (is_os_type('Windows') && $config->get('cc') =~ /^cl/) {
-		$command = "$cc $ccflags -Fe$loadable_object $source_name -link $lddlflags $libs";
+		$command = "$cc $ccflags $optimize $source_name /link $lddlflags $perllibs /out:$loadable_object";
 	}
 	else {
 		warn "Unsupported system: can't test compiler availability. Patches welcome...";
@@ -97,14 +126,17 @@ sub can_compile_loadable_object {
 	}
 
 	print "$command\n" if not $args{quiet};
-	system($command) and die return;
+	system $command and die "Couldn't execute command: $!";
 
 	require DynaLoader;
 	my $handle = DynaLoader::dl_load_file($loadable_object, 0);
 	if ($handle) {
-		my $ret = DynaLoader::dl_find_symbol($handle, 'foo');
+		my $symbol = DynaLoader::dl_find_symbol($handle, 'boot_compilet');
+		my $compilet = DynaLoader::dl_install_xsub("compilet", $symbol, $source_name);
+		my $ret = eval { compilet(); $package->exported };
+		delete $ExtUtils::HasCompiler::{"$shortname\::"};
 		DynaLoader::dl_unload_file($handle);
-		return !!$ret;
+		return $ret == 42;
 	}
 	return;
 }
