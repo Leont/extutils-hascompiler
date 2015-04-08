@@ -8,9 +8,8 @@ our @EXPORT = qw/can_compile_executable can_compile_loadable_object/;
 
 use Config;
 use Carp 'croak';
-use Env '@PATH';
 use File::Basename 'basename';
-use File::Spec::Functions qw/curdir catdir rel2abs/;
+use File::Spec::Functions qw/curdir catfile catdir rel2abs/;
 use File::Temp qw/tempdir tempfile/;
 use Perl::OSType 'is_os_type';
 
@@ -33,13 +32,13 @@ END
 sub can_compile_executable {
 	my (%args) = @_;
 
-	my $tempdir = tempdir(DIR => curdir, CLEANUP => 1);
+	my $tempdir = tempdir(CLEANUP => 1);
 	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c');
 	write_file($source_handle, $executable_code);
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
 	my ($cc, $ccflags, $ldflags, $libs) = map { $args{$_} || $config->get($_) } qw/cc ccflags ldflags libs/;
-	my $executable = catdir($tempdir, basename($source_name, '.c') . $config->get('_exe'));
+	my $executable = catfile($tempdir, basename($source_name, '.c') . $config->get('_exe'));
 
 	my $command;
 	if (is_os_type('Unix') || $Config{gccversion}) {
@@ -80,7 +79,7 @@ XS(exported) {
 #define XS_EXTERNAL(foo) XS(foo)
 #endif
 
-XS_EXTERNAL(boot_compilet) {
+XS_EXTERNAL(boot_%s) {
 #ifdef dVAR
 	dVAR;
 #endif
@@ -99,26 +98,29 @@ my $counter = 1;
 sub can_compile_loadable_object {
 	my (%args) = @_;
 
-	my $tempdir = tempdir(DIR => curdir, CLEANUP => 1);
-	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c');
+	my $tempdir = tempdir(CLEANUP => 1);
+	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c', UNLINK => 1);
+	my $basename = basename($source_name, '.c');
 
 	my $shortname = '_Loadable' . $counter++;
 	my $package = "ExtUtils::HasCompiler::$shortname";
-	my $loadable_object_code = sprintf $loadable_object_format, $package;
+	my $loadable_object_code = sprintf $loadable_object_format, $basename, $package;
 	write_file($source_handle, $loadable_object_code);
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
 	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $perllibs, $archlibexp) = map { $args{$_} || $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags perllibs archlibexp/;
 	my $incdir = catdir($archlibexp, 'CORE');
 
-	my $loadable_object = catdir($tempdir, basename($source_name, '.c') . '.' . $config->get('dlext'));
+	my $loadable_object = catfile($tempdir, basename($source_name, '.c') . '.' . $config->get('dlext'));
 
 	my $command;
 	if (is_os_type('Unix') || $Config{gccversion}) {
-		$command = "$cc $ccflags -I$incdir $cccdlflags $lddlflags -o $loadable_object $source_name";
+		$command = "$cc $ccflags -I$incdir $cccdlflags $lddlflags $perllibs -o $loadable_object $source_name";
 	}
 	elsif (is_os_type('Windows') && $config->get('cc') =~ /^cl/) {
-		$command = "$cc $ccflags $optimize $source_name /link $lddlflags $perllibs /out:$loadable_object";
+		require ExtUtils::Mksymlists;
+		ExtUtils::Mksymbols::Mksymbols(NAME => $basename);
+		$command = "$cc $ccflags $optimize $source_name $basename.def /link $lddlflags $perllibs /out:$loadable_object";
 	}
 	else {
 		warn "Unsupported system: can't test compiler availability. Patches welcome...";
@@ -131,9 +133,9 @@ sub can_compile_loadable_object {
 	require DynaLoader;
 	my $handle = DynaLoader::dl_load_file($loadable_object, 0);
 	if ($handle) {
-		my $symbol = DynaLoader::dl_find_symbol($handle, 'boot_compilet');
-		my $compilet = DynaLoader::dl_install_xsub("compilet", $symbol, $source_name);
-		my $ret = eval { compilet(); $package->exported };
+		my $symbol = DynaLoader::dl_find_symbol($handle, "boot_$basename");
+		my $compilet = DynaLoader::dl_install_xsub('__ANON__::__ANON__', $symbol, $source_name);
+		my $ret = eval { $compilet->(); $package->exported };
 		delete $ExtUtils::HasCompiler::{"$shortname\::"};
 		DynaLoader::dl_unload_file($handle);
 		return $ret == 42;
