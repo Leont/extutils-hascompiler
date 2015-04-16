@@ -14,6 +14,8 @@ use File::Spec::Functions qw/curdir catfile catdir rel2abs/;
 use File::Temp qw/tempdir tempfile/;
 use Perl::OSType 'is_os_type';
 
+my $tempdir = tempdir(CLEANUP => 1);
+
 sub write_file {
 	my ($fh, $content) = @_;
 	print $fh $content or croak "Couldn't write to file: $!";
@@ -31,9 +33,8 @@ int main(int argc, char** argv) {
 END
 
 sub can_compile_executable {
-	my (%args) = @_;
+	my %args = @_;
 
-	my $tempdir = tempdir(CLEANUP => 1);
 	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c');
 	write_file($source_handle, $executable_code);
 
@@ -97,9 +98,8 @@ END
 my $counter = 1;
 
 sub can_compile_loadable_object {
-	my (%args) = @_;
+	my %args = @_;
 
-	my $tempdir = tempdir(CLEANUP => 1);
 	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c', UNLINK => 1);
 	my $basename = basename($source_name, '.c');
 
