@@ -112,11 +112,15 @@ sub can_compile_loadable_object {
 	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $perllibs, $archlibexp) = map { $args{$_} || $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags perllibs archlibexp/;
 	my $incdir = catdir($archlibexp, 'CORE');
 
-	my $loadable_object = catfile($tempdir, basename($source_name, '.c') . '.' . $config->get('dlext'));
+	my $loadable_object = catfile($tempdir, $basename . '.' . $config->get('dlext'));
 
 	my $command;
-	if (is_os_type('Unix') || $Config{gccversion}) {
-		$command = "$cc $ccflags -I$incdir $cccdlflags $lddlflags $perllibs -o $loadable_object $source_name";
+	if (is_os_type('Unix') || $config->get('gccversion')) {
+		if ($^O eq 'aix') {
+			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
+			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
+		}
+		$command = qq{$cc $ccflags "-I$incdir" $cccdlflags $lddlflags $perllibs -o $loadable_object $source_name};
 	}
 	elsif (is_os_type('Windows') && $config->get('cc') =~ /^cl/) {
 		require ExtUtils::Mksymlists;
