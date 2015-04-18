@@ -135,6 +135,8 @@ sub can_compile_loadable_object {
 	print "$command\n" if not $args{quiet};
 	system $command and die "Couldn't execute command: $!";
 
+	return 1 if $config->get('usecrosscompile'); # Skip loading when cross-compiling
+
 	require DynaLoader;
 	my $handle = DynaLoader::dl_load_file($loadable_object, 0);
 	if ($handle) {
