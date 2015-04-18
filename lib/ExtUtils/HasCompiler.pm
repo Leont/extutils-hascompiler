@@ -124,7 +124,7 @@ sub can_compile_loadable_object {
 	}
 	elsif (is_os_type('Windows') && $config->get('cc') =~ /^cl/) {
 		require ExtUtils::Mksymlists;
-		ExtUtils::Mksymbols::Mksymbols(NAME => $basename);
+		ExtUtils::Mksymlists::Mksymlists(NAME => $basename);
 		$command = "$cc $ccflags $optimize $source_name $basename.def /link $lddlflags $perllibs /out:$loadable_object";
 	}
 	else {
