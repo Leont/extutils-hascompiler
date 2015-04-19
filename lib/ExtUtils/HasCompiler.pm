@@ -16,7 +16,7 @@ use Perl::OSType 'is_os_type';
 
 my $tempdir = tempdir(CLEANUP => 1);
 
-sub write_file {
+sub _write_file {
 	my ($fh, $content) = @_;
 	print $fh $content or croak "Couldn't write to file: $!";
 	close $fh or croak "Couldn't close file: $!";
@@ -36,7 +36,7 @@ sub can_compile_executable {
 	my %args = @_;
 
 	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c');
-	write_file($source_handle, $executable_code);
+	_write_file($source_handle, $executable_code);
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
 	my ($cc, $ccflags, $ldflags, $libs) = map { $args{$_} || $config->get($_) } qw/cc ccflags ldflags libs/;
@@ -113,7 +113,7 @@ sub can_compile_loadable_object {
 	my $shortname = '_Loadable' . $counter++;
 	my $package = "ExtUtils::HasCompiler::$shortname";
 	my $loadable_object_code = sprintf $loadable_object_format, $basename, $package;
-	write_file($source_handle, $loadable_object_code);
+	_write_file($source_handle, $loadable_object_code);
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
 	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $perllibs, $archlibexp) = map { $args{$_} || $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags perllibs archlibexp/;
