@@ -81,7 +81,14 @@ XS(exported) {
 #define XS_EXTERNAL(foo) XS(foo)
 #endif
 
-XS_EXTERNAL(boot_%s) {
+/* we don't want to mess with .def files on mingw */
+#if defined(WIN32) && defined(__GNUC__)
+#  define EXPORT __declspec(dllexport)
+#else
+#  define EXPORT
+#endif
+
+EXPORT XS_EXTERNAL(boot_%s) {
 #ifdef dVAR
 	dVAR;
 #endif
@@ -120,7 +127,7 @@ sub can_compile_loadable_object {
 			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
 		}
-		$command = qq{$cc $ccflags "-I$incdir" $cccdlflags $lddlflags $perllibs -o $loadable_object $source_name};
+		$command = qq{$cc $ccflags "-I$incdir" $cccdlflags $source_name $lddlflags $perllibs -o $loadable_object };
 	}
 	elsif (is_os_type('Windows') && $config->get('cc') =~ /^cl/) {
 		require ExtUtils::Mksymlists;
