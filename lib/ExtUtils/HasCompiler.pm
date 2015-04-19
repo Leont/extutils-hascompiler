@@ -168,3 +168,33 @@ sub ExtUtils::HasCompiler::Config::get {
 1;
 
 # ABSTRACT: Check for the presence of a compiler
+
+=head1 DESCRIPTION
+
+This module tries to thorougly check if the current system has a working compiler.
+
+B<Notice>: this is an early release, interface stability isn't guaranteed yet.
+
+=func can_compile_executable(%opts)
+
+This checks if the system can compile and link an executable. This may be removed in the future.
+
+=func can_compile_loadable_object(%opts)
+
+This checks if the system can compile, link and load a perl loadable object. It may take the following options:
+
+=over 4
+
+=item * quiet
+
+Do not output the executed compilation commands.
+
+=item * config
+
+An L<ExtUtils::Config|ExtUtils::Config> (compatible) object for configuration.
+
+=item * skip_load
+
+This causes can_compile_loadable_object to not try to load the generated object. This defaults to true on a cross-compiling perl.
+
+=back
