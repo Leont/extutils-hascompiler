@@ -1,6 +1,7 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          Switch to ExtUtils::MakeMaker
 
 0.001     2015-04-19 16:54:07+02:00 Europe/Amsterdam
           Initial release to an unsuspecting world
