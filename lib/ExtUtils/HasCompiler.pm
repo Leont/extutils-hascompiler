@@ -124,8 +124,10 @@ sub can_compile_loadable_object {
 	}
 	elsif (is_os_type('Windows') && $config->get('cc') =~ /^cl/) {
 		require ExtUtils::Mksymlists;
-		ExtUtils::Mksymlists::Mksymlists(NAME => $basename);
-		$command = qq{$cc $ccflags $optimize /I "$incdir" $source_name $basename.def /link $lddlflags $perllibs /out:$loadable_object};
+		my $abs_basename = catfile($tempdir, $basename);
+		#Mksymlists will add the ext on its own
+		ExtUtils::Mksymlists::Mksymlists(NAME => $basename, FILE => $abs_basename);
+		$command = qq{$cc $ccflags $optimize /I "$incdir" $source_name $abs_basename.def /Fo$abs_basename.obj /Fd$abs_basename.pdb /link $lddlflags $perllibs /out:$loadable_object};
 	}
 	else {
 		warn "Unsupported system: can't test compiler availability. Patches welcome...";
