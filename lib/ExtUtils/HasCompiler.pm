@@ -39,7 +39,7 @@ sub can_compile_executable {
 	_write_file($source_handle, $executable_code);
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
-	my ($cc, $ccflags, $ldflags, $libs) = map { $args{$_} || $config->get($_) } qw/cc ccflags ldflags libs/;
+	my ($cc, $ccflags, $ldflags, $libs) = map { $args{$_} || $ENV{uc $_} || $config->get($_) } qw/cc ccflags ldflags libs/;
 	my $executable = catfile($tempdir, basename($source_name, '.c') . $config->get('_exe'));
 
 	my $command;
@@ -116,7 +116,7 @@ sub can_compile_loadable_object {
 	_write_file($source_handle, $loadable_object_code);
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
-	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $perllibs, $archlibexp) = map { $args{$_} || $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags perllibs archlibexp/;
+	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $perllibs, $archlibexp) = map { $args{$_} || $ENV{uc $_} || $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags perllibs archlibexp/;
 	my $incdir = catdir($archlibexp, 'CORE');
 
 	my $loadable_object = catfile($tempdir, $basename . '.' . $config->get('dlext'));
@@ -129,7 +129,7 @@ sub can_compile_loadable_object {
 		}
 		$command = qq{$cc $ccflags "-I$incdir" $cccdlflags $source_name $lddlflags $perllibs -o $loadable_object };
 	}
-	elsif (is_os_type('Windows') && $config->get('cc') =~ /^cl/) {
+	elsif (is_os_type('Windows') && $cc =~ /^cl/) {
 		require ExtUtils::Mksymlists;
 		my $abs_basename = catfile($tempdir, $basename);
 		#Mksymlists will add the ext on its own

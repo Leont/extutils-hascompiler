@@ -1,6 +1,7 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          Prefer environmental variables over configuration (experimental)
 
 0.002     2015-04-19 19:18:10+02:00 Europe/Amsterdam
           Switch to ExtUtils::MakeMaker
