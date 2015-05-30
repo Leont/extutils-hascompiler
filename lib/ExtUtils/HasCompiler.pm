@@ -12,7 +12,6 @@ use Carp 'croak';
 use File::Basename 'basename';
 use File::Spec::Functions qw/curdir catfile catdir rel2abs/;
 use File::Temp qw/tempdir tempfile/;
-use Perl::OSType 'is_os_type';
 
 my $tempdir = tempdir(CLEANUP => 1);
 
@@ -43,15 +42,16 @@ sub can_compile_executable {
 	my $executable = catfile($tempdir, basename($source_name, '.c') . $config->get('_exe'));
 
 	my $command;
-	if (is_os_type('Unix') || $Config{gccversion}) {
-		$command = "$cc $ccflags -o $executable $source_name $ldflags";
-	}
-	elsif (is_os_type('Windows') && $config->get('cc') =~ /^cl/) {
+	if ($^O eq 'MSWin32' && $config->get('cc') =~ /^cl/) {
 		$command = "$cc $ccflags -Fe$executable $source_name -link $ldflags $libs";
 	}
-	else {
-		warn "Unsupported system: can't test compiler availability. Patches welcome...";
+	elsif ($^O eq 'VMS') {
+		warn "VMS is currently unsupported";
 		return;
+	}
+	else {
+		# Assume UNIXish
+		$command = "$cc $ccflags -o $executable $source_name $ldflags";
 	}
 
 	print "$command\n" if not $args{quiet};
@@ -122,23 +122,23 @@ sub can_compile_loadable_object {
 	my $loadable_object = catfile($tempdir, $basename . '.' . $config->get('dlext'));
 
 	my $command;
-	if (is_os_type('Unix') || $config->get('gccversion')) {
-		if ($^O eq 'aix') {
-			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
-			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
-		}
-		$command = qq{$cc $ccflags "-I$incdir" $cccdlflags $source_name $lddlflags $perllibs -o $loadable_object };
-	}
-	elsif (is_os_type('Windows') && $cc =~ /^cl/) {
+	if ($^O eq 'MSWin32' && $cc =~ /^cl/) {
 		require ExtUtils::Mksymlists;
 		my $abs_basename = catfile($tempdir, $basename);
 		#Mksymlists will add the ext on its own
 		ExtUtils::Mksymlists::Mksymlists(NAME => $basename, FILE => $abs_basename);
 		$command = qq{$cc $ccflags $optimize /I "$incdir" $source_name $abs_basename.def /Fo$abs_basename.obj /Fd$abs_basename.pdb /link $lddlflags $perllibs /out:$loadable_object};
 	}
-	else {
-		warn "Unsupported system: can't test compiler availability. Patches welcome...";
+	if ($^O eq 'VMS') {
+		warn "VMS is currently unsupported";
 		return;
+	}
+	else {
+		if ($^O eq 'aix') {
+			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
+			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
+		}
+		$command = qq{$cc $ccflags "-I$incdir" $cccdlflags $source_name $lddlflags $perllibs -o $loadable_object };
 	}
 
 	print "$command\n" if not $args{quiet};
