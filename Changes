@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.003     2015-05-30 19:33:33+02:00 Europe/Amsterdam
           Prefer environmental variables over configuration (experimental)
           Get rid of Perl::OSType dependency
 
