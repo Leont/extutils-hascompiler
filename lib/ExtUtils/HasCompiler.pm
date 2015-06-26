@@ -107,6 +107,9 @@ my $counter = 1;
 sub can_compile_loadable_object {
 	my %args = @_;
 
+	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
+	return if not $config->get('usedl');
+
 	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c', UNLINK => 1);
 	my $basename = basename($source_name, '.c');
 
@@ -115,7 +118,6 @@ sub can_compile_loadable_object {
 	my $loadable_object_code = sprintf $loadable_object_format, $basename, $package;
 	_write_file($source_handle, $loadable_object_code);
 
-	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
 	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $perllibs, $archlibexp) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags perllibs archlibexp/;
 	my $incdir = catdir($archlibexp, 'CORE');
 
