@@ -3,7 +3,7 @@ package ExtUtils::HasCompiler;
 use strict;
 use warnings;
 
-use Exporter 5.57 'import';
+use base 'Exporter';
 our @EXPORT_OK = qw/can_compile_executable can_compile_loadable_object/;
 our %EXPORT_TAGS = (all => \@EXPORT_OK);
 
