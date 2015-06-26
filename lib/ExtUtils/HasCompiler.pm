@@ -15,12 +15,6 @@ use File::Temp qw/tempdir tempfile/;
 
 my $tempdir = tempdir(CLEANUP => 1);
 
-sub _write_file {
-	my ($fh, $content) = @_;
-	print $fh $content or croak "Couldn't write to file: $!";
-	close $fh or croak "Couldn't close file: $!";
-}
-
 my $executable_code = <<'END';
 #include <stdlib.h>
 #include <stdio.h>
@@ -35,7 +29,8 @@ sub can_compile_executable {
 	my %args = @_;
 
 	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c');
-	_write_file($source_handle, $executable_code);
+	print $source_handle $executable_code or croak "Couldn't write to file: $!";
+	close $source_handle or croak "Couldn't close sourcefile: $!";
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
 	my ($cc, $ccflags, $ldflags, $libs) = map { $config->get($_) } qw/cc ccflags ldflags libs/;
@@ -115,8 +110,8 @@ sub can_compile_loadable_object {
 
 	my $shortname = '_Loadable' . $counter++;
 	my $package = "ExtUtils::HasCompiler::$shortname";
-	my $loadable_object_code = sprintf $loadable_object_format, $basename, $package;
-	_write_file($source_handle, $loadable_object_code);
+	printf $source_handle $loadable_object_format, $basename, $package or croak "Couldn't write to file: $!";
+	close $source_handle or croak "Couldn't close sourcefile: $!";
 
 	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $perllibs, $archlibexp) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags perllibs archlibexp/;
 	my $incdir = catdir($archlibexp, 'CORE');
