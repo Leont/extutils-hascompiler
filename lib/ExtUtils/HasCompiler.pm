@@ -129,7 +129,7 @@ sub can_compile_loadable_object {
 		ExtUtils::Mksymlists::Mksymlists(NAME => $basename, FILE => $abs_basename);
 		$command = qq{$cc $ccflags $optimize /I "$incdir" $source_name $abs_basename.def /Fo$abs_basename.obj /Fd$abs_basename.pdb /link $lddlflags $perllibs /out:$loadable_object};
 	}
-	if ($^O eq 'VMS') {
+	elsif ($^O eq 'VMS') {
 		warn "VMS is currently unsupported";
 		return;
 	}
