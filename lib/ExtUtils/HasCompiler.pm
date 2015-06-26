@@ -142,7 +142,7 @@ sub can_compile_loadable_object {
 	}
 
 	print "$command\n" if not $args{quiet};
-	system $command and die "Couldn't execute command: $!";
+	system $command and die "Couldn't execute $command: $!";
 
 	# Skip loading when cross-compiling
 	return 1 if exists $args{skip_load} ? $args{skip_load} : $config->get('usecrosscompile');

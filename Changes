@@ -4,6 +4,7 @@ Revision history for ExtUtils-HasCompiler
           Fix MSVC regression
           Only use env-vars when no config is passed
           Rely on config to be overriden instead of adding yet another way to override
+          Give clearer errors on compilation failure
 
 0.003     2015-05-30 19:33:33+02:00 Europe/Amsterdam
           Prefer environmental variables over configuration (experimental)
