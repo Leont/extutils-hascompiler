@@ -4,55 +4,16 @@ use strict;
 use warnings;
 
 use base 'Exporter';
-our @EXPORT_OK = qw/can_compile_executable can_compile_loadable_object/;
+our @EXPORT_OK = qw/can_compile_loadable_object/;
 our %EXPORT_TAGS = (all => \@EXPORT_OK);
 
 use Config;
 use Carp 'croak';
 use File::Basename 'basename';
-use File::Spec::Functions qw/curdir catfile catdir rel2abs/;
+use File::Spec::Functions qw/catfile catdir/;
 use File::Temp qw/tempdir tempfile/;
 
 my $tempdir = tempdir(CLEANUP => 1);
-
-my $executable_code = <<'END';
-#include <stdlib.h>
-#include <stdio.h>
-
-int main(int argc, char** argv) {
-	puts("It seems we've got a working compiler");
-	return 0;
-}
-END
-
-sub can_compile_executable {
-	my %args = @_;
-
-	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c');
-	print $source_handle $executable_code or croak "Couldn't write to file: $!";
-	close $source_handle or croak "Couldn't close sourcefile: $!";
-
-	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
-	my ($cc, $ccflags, $ldflags, $libs) = map { $config->get($_) } qw/cc ccflags ldflags libs/;
-	my $executable = catfile($tempdir, basename($source_name, '.c') . $config->get('_exe'));
-
-	my $command;
-	if ($^O eq 'MSWin32' && $config->get('cc') =~ /^cl/) {
-		$command = "$cc $ccflags -Fe$executable $source_name -link $ldflags $libs";
-	}
-	elsif ($^O eq 'VMS') {
-		warn "VMS is currently unsupported";
-		return;
-	}
-	else {
-		# Assume UNIXish
-		$command = "$cc $ccflags -o $executable $source_name $ldflags";
-	}
-
-	print "$command\n" if not $args{quiet};
-	system $command and return;
-	return not system(rel2abs($executable));
-}
 
 my $loadable_object_format = <<'END';
 #define PERL_NO_GET_CONTEXT
@@ -168,13 +129,9 @@ sub ExtUtils::HasCompiler::Config::get {
 
 =head1 DESCRIPTION
 
-This module tries to thorougly check if the current system has a working compiler.
+This module tries to check if the current system is capable of compiling, linking and loading an XS module.
 
 B<Notice>: this is an early release, interface stability isn't guaranteed yet.
-
-=func can_compile_executable(%opts)
-
-This checks if the system can compile and link an executable. This may be removed in the future.
 
 =func can_compile_loadable_object(%opts)
 
