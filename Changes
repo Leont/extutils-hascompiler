@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.005     2015-06-27 14:30:04+02:00 Europe/Amsterdam
           Return false early on static perls
           Get rid of can_compile_executable
           Link to libperl on Win32
