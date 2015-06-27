@@ -92,7 +92,7 @@ sub can_compile_loadable_object {
 		return;
 	}
 	else {
-		my $extra = $^O eq 'MSWin32' ? $libperl : '';
+		my $extra = $^O eq 'MSWin32' || $^O eq 'cygwin' ? '-l' . ($libperl =~ /lib([^.]+)\./)[0] : '';
 		if ($^O eq 'aix') {
 			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;

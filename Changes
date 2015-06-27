@@ -1,6 +1,7 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          Correctly pass linking argument on Win32 and cygwin
 
 0.005     2015-06-27 14:30:04+02:00 Europe/Amsterdam
           Return false early on static perls
