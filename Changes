@@ -3,6 +3,7 @@ Revision history for ExtUtils-HasCompiler
 {{$NEXT}}
           Return false early on static perls
           Get rid of can_compile_executable
+          Link to libperl on Win32
 
 0.004     2015-06-26 03:13:56+02:00 Europe/Amsterdam
           Fix MSVC regression

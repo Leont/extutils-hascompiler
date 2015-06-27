@@ -74,7 +74,7 @@ sub can_compile_loadable_object {
 	printf $source_handle $loadable_object_format, $basename, $package or croak "Couldn't write to file: $!";
 	close $source_handle or croak "Couldn't close sourcefile: $!";
 
-	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $perllibs, $archlibexp) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags perllibs archlibexp/;
+	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $libperl, $perllibs, $archlibexp) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags libperl perllibs archlibexp/;
 	my $incdir = catdir($archlibexp, 'CORE');
 
 	my $loadable_object = catfile($tempdir, $basename . '.' . $config->get('dlext'));
@@ -85,18 +85,19 @@ sub can_compile_loadable_object {
 		my $abs_basename = catfile($tempdir, $basename);
 		#Mksymlists will add the ext on its own
 		ExtUtils::Mksymlists::Mksymlists(NAME => $basename, FILE => $abs_basename);
-		$command = qq{$cc $ccflags $optimize /I "$incdir" $source_name $abs_basename.def /Fo$abs_basename.obj /Fd$abs_basename.pdb /link $lddlflags $perllibs /out:$loadable_object};
+		$command = qq{$cc $ccflags $optimize /I "$incdir" $source_name $abs_basename.def /Fo$abs_basename.obj /Fd$abs_basename.pdb /link $lddlflags $libperl $perllibs /out:$loadable_object};
 	}
 	elsif ($^O eq 'VMS') {
 		warn "VMS is currently unsupported";
 		return;
 	}
 	else {
+		my $extra = $^O eq 'MSWin32' ? $libperl : '';
 		if ($^O eq 'aix') {
 			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
 		}
-		$command = qq{$cc $ccflags "-I$incdir" $cccdlflags $source_name $lddlflags $perllibs -o $loadable_object };
+		$command = qq{$cc $ccflags "-I$incdir" $cccdlflags $source_name $lddlflags $extra $perllibs -o $loadable_object };
 	}
 
 	print "$command\n" if not $args{quiet};
