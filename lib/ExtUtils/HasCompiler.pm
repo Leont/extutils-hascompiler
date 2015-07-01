@@ -8,7 +8,7 @@ our @EXPORT_OK = qw/can_compile_loadable_object/;
 our %EXPORT_TAGS = (all => \@EXPORT_OK);
 
 use Config;
-use Carp 'croak';
+use Carp 'carp';
 use File::Basename 'basename';
 use File::Spec::Functions qw/catfile catdir/;
 use File::Temp qw/tempdir tempfile/;
@@ -71,8 +71,8 @@ sub can_compile_loadable_object {
 
 	my $shortname = '_Loadable' . $counter++;
 	my $package = "ExtUtils::HasCompiler::$shortname";
-	printf $source_handle $loadable_object_format, $basename, $package or croak "Couldn't write to file: $!";
-	close $source_handle or croak "Couldn't close sourcefile: $!";
+	printf $source_handle $loadable_object_format, $basename, $package or do { carp "Couldn't write to $source_name: $!"; return };
+	close $source_handle or do { carp "Couldn't close $source_name: $!"; return };
 
 	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $libperl, $perllibs, $archlibexp) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags libperl perllibs archlibexp/;
 	my $incdir = catdir($archlibexp, 'CORE');
@@ -88,7 +88,7 @@ sub can_compile_loadable_object {
 		$command = qq{$cc $ccflags $optimize /I "$incdir" $source_name $abs_basename.def /Fo$abs_basename.obj /Fd$abs_basename.pdb /link $lddlflags $libperl $perllibs /out:$loadable_object};
 	}
 	elsif ($^O eq 'VMS') {
-		warn "VMS is currently unsupported";
+		carp "VMS is currently unsupported";
 		return;
 	}
 	else {
@@ -101,7 +101,7 @@ sub can_compile_loadable_object {
 	}
 
 	print "$command\n" if not $args{quiet};
-	system $command and die "Couldn't execute $command: $!";
+	system $command and do { carp "Couldn't execute $command: $!"; return };
 
 	# Skip loading when cross-compiling
 	return 1 if exists $args{skip_load} ? $args{skip_load} : $config->get('usecrosscompile');
