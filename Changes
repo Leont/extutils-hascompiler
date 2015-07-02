@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.007     2015-07-02 07:41:29+02:00 Europe/Amsterdam
           Use carp and return instead of croak
           Explicitly handle import lib for cygwin
           Use separate compiling and linking stages
