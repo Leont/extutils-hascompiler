@@ -92,7 +92,9 @@ sub can_compile_loadable_object {
 		return;
 	}
 	else {
-		my $extra = $^O eq 'MSWin32' || $^O eq 'cygwin' ? '-l' . ($libperl =~ /lib([^.]+)\./)[0] : '';
+		my $extra = $^O eq 'MSWin32' ? '-l' . ($libperl =~ /lib([^.]+)\./)[0]
+			: $^O eq 'cygwin' ? catfile($incdir, $config->get('useshrplib') ? 'libperl.dll.a' : 'libperl.a')
+			: '';
 		if ($^O eq 'aix') {
 			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
