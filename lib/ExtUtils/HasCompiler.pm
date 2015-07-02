@@ -21,6 +21,10 @@ my $loadable_object_format = <<'END';
 #include "perl.h"
 #include "XSUB.h"
 
+#ifndef PERL_UNUSED_VAR
+#define PERL_UNUSED_VAR(var)
+#endif
+
 XS(exported) {
 #ifdef dVAR
 	dVAR;

@@ -1,6 +1,7 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          Handle ancient perls without PERL_UNUSED_VAR
 
 0.007     2015-07-02 07:41:29+02:00 Europe/Amsterdam
           Use carp and return instead of croak
