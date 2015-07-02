@@ -3,6 +3,7 @@ Revision history for ExtUtils-HasCompiler
 {{$NEXT}}
           Use carp and return instead of croak
           Explicitly handle import lib for cygwin
+          Use separate compiling and linking stages
 
 0.006     2015-06-27 15:40:31+02:00 Europe/Amsterdam
           Correctly pass linking argument on Win32 and cygwin

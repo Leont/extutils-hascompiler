@@ -74,18 +74,20 @@ sub can_compile_loadable_object {
 	printf $source_handle $loadable_object_format, $basename, $package or do { carp "Couldn't write to $source_name: $!"; return };
 	close $source_handle or do { carp "Couldn't close $source_name: $!"; return };
 
-	my ($cc, $ccflags, $optimize, $cccdlflags, $lddlflags, $libperl, $perllibs, $archlibexp) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags lddlflags libperl perllibs archlibexp/;
-	my $incdir = catdir($archlibexp, 'CORE');
+	my $abs_basename = catfile($tempdir, $basename);
+	my $object_file = $abs_basename . $config->get('_o');
+	my $loadable_object = $abs_basename . $config->get('dlext');
+	my $incdir = catdir($config->get('archlibexp'), 'CORE');
 
-	my $loadable_object = catfile($tempdir, $basename . '.' . $config->get('dlext'));
+	my ($cc, $ccflags, $optimize, $cccdlflags, $ld, $lddlflags, $libperl, $perllibs) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags ld lddlflags libperl perllibs/;
 
 	my @commands;
 	if ($^O eq 'MSWin32' && $cc =~ /^cl/) {
 		require ExtUtils::Mksymlists;
-		my $abs_basename = catfile($tempdir, $basename);
 		#Mksymlists will add the ext on its own
 		ExtUtils::Mksymlists::Mksymlists(NAME => $basename, FILE => $abs_basename);
-		push @commands, qq{$cc $ccflags $optimize /I "$incdir" $source_name $abs_basename.def /Fo$abs_basename.obj /Fd$abs_basename.pdb /link $lddlflags $libperl $perllibs /out:$loadable_object};
+		push @commands, qq{$cc $ccflags $cccdlflags $optimize /I "$incdir" $source_name /Fo$object_file};
+		push @commands, qq{$ld $object_file $lddlflags $libperl $perllibs /out:$loadable_object /def:$abs_basename.def /pdb:$abs_basename.pdb};
 	}
 	elsif ($^O eq 'VMS') {
 		carp "VMS is currently unsupported";
@@ -99,7 +101,8 @@ sub can_compile_loadable_object {
 			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
 		}
-		push @commands, qq{$cc $ccflags "-I$incdir" $cccdlflags $source_name $lddlflags $extra $perllibs -o $loadable_object };
+		push @commands, qq{$cc $ccflags $optimize "-I$incdir" $cccdlflags -c $source_name -o $object_file};
+		push @commands, qq{$cc $optimize $object_file -o $loadable_object $lddlflags $extra $perllibs};
 	}
 
 	for my $command (@commands) {
