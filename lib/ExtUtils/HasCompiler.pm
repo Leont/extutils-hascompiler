@@ -79,13 +79,13 @@ sub can_compile_loadable_object {
 
 	my $loadable_object = catfile($tempdir, $basename . '.' . $config->get('dlext'));
 
-	my $command;
+	my @commands;
 	if ($^O eq 'MSWin32' && $cc =~ /^cl/) {
 		require ExtUtils::Mksymlists;
 		my $abs_basename = catfile($tempdir, $basename);
 		#Mksymlists will add the ext on its own
 		ExtUtils::Mksymlists::Mksymlists(NAME => $basename, FILE => $abs_basename);
-		$command = qq{$cc $ccflags $optimize /I "$incdir" $source_name $abs_basename.def /Fo$abs_basename.obj /Fd$abs_basename.pdb /link $lddlflags $libperl $perllibs /out:$loadable_object};
+		push @commands, qq{$cc $ccflags $optimize /I "$incdir" $source_name $abs_basename.def /Fo$abs_basename.obj /Fd$abs_basename.pdb /link $lddlflags $libperl $perllibs /out:$loadable_object};
 	}
 	elsif ($^O eq 'VMS') {
 		carp "VMS is currently unsupported";
@@ -97,11 +97,13 @@ sub can_compile_loadable_object {
 			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
 		}
-		$command = qq{$cc $ccflags "-I$incdir" $cccdlflags $source_name $lddlflags $extra $perllibs -o $loadable_object };
+		push @commands, qq{$cc $ccflags "-I$incdir" $cccdlflags $source_name $lddlflags $extra $perllibs -o $loadable_object };
 	}
 
-	print "$command\n" if not $args{quiet};
-	system $command and do { carp "Couldn't execute $command: $!"; return };
+	for my $command (@commands) {
+		print "$command\n" if not $args{quiet};
+		system $command and do { carp "Couldn't execute $command: $!"; return };
+	}
 
 	# Skip loading when cross-compiling
 	return 1 if exists $args{skip_load} ? $args{skip_load} : $config->get('usecrosscompile');
