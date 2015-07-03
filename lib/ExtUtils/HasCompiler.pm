@@ -9,6 +9,7 @@ our %EXPORT_TAGS = (all => \@EXPORT_OK);
 
 use Config;
 use Carp 'carp';
+use ExtUtils::Mksymlists;
 use File::Basename 'basename';
 use File::Spec::Functions qw/catfile catdir/;
 use File::Temp qw/tempdir tempfile/;
@@ -87,9 +88,7 @@ sub can_compile_loadable_object {
 
 	my @commands;
 	if ($^O eq 'MSWin32' && $cc =~ /^cl/) {
-		require ExtUtils::Mksymlists;
-		#Mksymlists will add the ext on its own
-		ExtUtils::Mksymlists::Mksymlists(NAME => $basename, FILE => $abs_basename);
+		Mksymlists(NAME => $basename, FILE => $abs_basename);
 		push @commands, qq{$cc $ccflags $cccdlflags $optimize /I "$incdir" $source_name /Fo$object_file};
 		push @commands, qq{$ld $object_file $lddlflags $libperl $perllibs /out:$loadable_object /def:$abs_basename.def /pdb:$abs_basename.pdb};
 	}
@@ -98,15 +97,22 @@ sub can_compile_loadable_object {
 		return;
 	}
 	else {
-		my $extra = $^O eq 'MSWin32' ? '-l' . ($libperl =~ /lib([^.]+)\./)[0]
-			: $^O eq 'cygwin' ? catfile($incdir, $config->get('useshrplib') ? 'libperl.dll.a' : 'libperl.a')
-			: '';
-		if ($^O eq 'aix') {
-			$lddlflags =~ s/\Q$(BASEEXT)\E/$basename/;
+		my @extra;
+		if ($^O eq 'MSWin32') {
+			push @extra, "$abs_basename.def";
+			Mksymlists(NAME => $basename, FILE => $abs_basename);
+			push @extra, '-l' . ($libperl =~ /lib([^.]+)\./)[0];
+		}
+		elsif ($^O eq 'cygwin') {
+			push @extra, catfile($incdir, $config->get('useshrplib') ? 'libperl.dll.a' : 'libperl.a');
+		}
+		elsif ($^O eq 'aix') {
+			$lddlflags =~ s/\Q$(BASEEXT)\E/$abs_basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
+			Mksymlists(NAME => $basename, FILE => $abs_basename);
 		}
 		push @commands, qq{$cc $ccflags $optimize "-I$incdir" $cccdlflags -c $source_name -o $object_file};
-		push @commands, qq{$cc $optimize $object_file -o $loadable_object $lddlflags $extra $perllibs};
+		push @commands, qq{$cc $optimize $object_file -o $loadable_object $lddlflags @extra $perllibs};
 	}
 
 	for my $command (@commands) {
