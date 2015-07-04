@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.008     2015-07-03 14:13:30+02:00 Europe/Amsterdam
           Handle ancient perls without PERL_UNUSED_VAR
           Improve diagnostics
 
