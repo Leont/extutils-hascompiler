@@ -64,6 +64,7 @@ EXPORT XS_EXTERNAL(boot_%s) {
 END
 
 my $counter = 1;
+my %prelinking = map { $_ => 1 } qw/MSWin32 VMS aix/;
 
 sub can_compile_loadable_object {
 	my %args = @_;
@@ -87,13 +88,12 @@ sub can_compile_loadable_object {
 	my ($cc, $ccflags, $optimize, $cccdlflags, $ld, $lddlflags, $libperl, $perllibs) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags ld lddlflags libperl perllibs/;
 
 	my @commands;
+	Mksymlists(NAME => $basename, FILE => $abs_basename) if $prelinking{$^O};
 	if ($^O eq 'MSWin32' && $cc =~ /^cl/) {
-		Mksymlists(NAME => $basename, FILE => $abs_basename);
 		push @commands, qq{$cc $ccflags $cccdlflags $optimize /I "$incdir" $source_name /Fo$object_file};
 		push @commands, qq{$ld $object_file $lddlflags $libperl $perllibs /out:$loadable_object /def:$abs_basename.def /pdb:$abs_basename.pdb};
 	}
 	elsif ($^O eq 'VMS') {
-		Mksymlists(NAME => $basename, FILE => $abs_basename);
 		my $incdirs = $ccflags =~ s{ /inc[^=]+ (?:=)+ (?:\()? ( [^\/\)]* ) }{}xi ? "$1,$incdir" : $incdir;
 		push @commands, qq{$cc $ccflags $optimize /include=($incdirs) $cccdlflags $source_name /obj=$object_file};
 		push @commands, qq{$cc $optimize $lddlflags=$loadable_object $object_file,$abs_basename.opt/OPTIONS,${incdir}perlshr_attr.opt/OPTIONS' $perllibs};
@@ -102,7 +102,6 @@ sub can_compile_loadable_object {
 		my @extra;
 		if ($^O eq 'MSWin32') {
 			push @extra, "$abs_basename.def";
-			Mksymlists(NAME => $basename, FILE => $abs_basename);
 			push @extra, '-l' . ($libperl =~ /lib([^.]+)\./)[0];
 		}
 		elsif ($^O eq 'cygwin') {
@@ -111,7 +110,6 @@ sub can_compile_loadable_object {
 		elsif ($^O eq 'aix') {
 			$lddlflags =~ s/\Q$(BASEEXT)\E/$abs_basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
-			Mksymlists(NAME => $basename, FILE => $abs_basename);
 		}
 		push @commands, qq{$cc $ccflags $optimize "-I$incdir" $cccdlflags -c $source_name -o $object_file};
 		push @commands, qq{$cc $optimize $object_file -o $loadable_object $lddlflags @extra $perllibs};
