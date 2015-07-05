@@ -93,8 +93,10 @@ sub can_compile_loadable_object {
 		push @commands, qq{$ld $object_file $lddlflags $libperl $perllibs /out:$loadable_object /def:$abs_basename.def /pdb:$abs_basename.pdb};
 	}
 	elsif ($^O eq 'VMS') {
-		carp "VMS is currently unsupported";
-		return;
+		Mksymlists(NAME => $basename, FILE => $abs_basename);
+		my $incdirs = $ccflags =~ s{ /inc[^=]+ (?:=)+ (?:\()? ( [^\/\)]* ) }{}xi ? "$1,$incdir" : $incdir;
+		push @commands, qq{$cc $ccflags $optimize /include=($incdirs) $cccdlflags $source_name /obj=$object_file};
+		push @commands, qq{$cc $optimize $lddlflags=$loadable_object $object_file,$abs_basename.opt/OPTIONS,${incdir}perlshr_attr.opt/OPTIONS' $perllibs};
 	}
 	else {
 		my @extra;
