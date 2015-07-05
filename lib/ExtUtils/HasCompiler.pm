@@ -81,7 +81,7 @@ sub can_compile_loadable_object {
 
 	my $abs_basename = catfile($tempdir, $basename);
 	my $object_file = $abs_basename . $config->get('_o');
-	my $loadable_object = $abs_basename . $config->get('dlext');
+	my $loadable_object = $abs_basename . '.' . $config->get('dlext');
 	my $incdir = catdir($config->get('archlibexp'), 'CORE');
 
 	my ($cc, $ccflags, $optimize, $cccdlflags, $ld, $lddlflags, $libperl, $perllibs) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags ld lddlflags libperl perllibs/;
@@ -133,7 +133,10 @@ sub can_compile_loadable_object {
 		DynaLoader::dl_unload_file($handle);
 		return $ret == 42;
 	}
-	return;
+	else {
+		carp "Couldn't load $loadable_object: " . DynaLoader::dl_error();
+		return;
+	}
 }
 
 sub ExtUtils::HasCompiler::Config::get {
