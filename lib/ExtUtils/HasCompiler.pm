@@ -128,9 +128,9 @@ sub can_compile_loadable_object {
 	if ($handle) {
 		my $symbol = DynaLoader::dl_find_symbol($handle, "boot_$basename");
 		my $compilet = DynaLoader::dl_install_xsub('__ANON__::__ANON__', $symbol, $source_name);
-		my $ret = eval { $compilet->(); $package->exported };
+		my $ret = eval { $compilet->(); $package->exported } or carp $@;
 		delete $ExtUtils::HasCompiler::{"$shortname\::"};
-		DynaLoader::dl_unload_file($handle);
+		eval { DynaLoader::dl_unload_file($handle) } or carp $@;
 		return $ret == 42;
 	}
 	else {
