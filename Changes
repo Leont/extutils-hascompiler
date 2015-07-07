@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.010     2015-07-07 16:28:40+02:00 Europe/Amsterdam
           Add /c to MSVC compiles
 
 0.009     2015-07-05 17:45:27+02:00 Europe/Amsterdam
