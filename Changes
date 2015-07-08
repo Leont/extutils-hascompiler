@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.011     2015-07-08 22:54:00+02:00 Europe/Amsterdam
           Always define IMPORTS argument to Mksymlists
 
 0.010     2015-07-07 16:28:40+02:00 Europe/Amsterdam
