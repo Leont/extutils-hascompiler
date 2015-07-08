@@ -1,6 +1,7 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          Always define IMPORTS argument to Mksymlists
 
 0.010     2015-07-07 16:28:40+02:00 Europe/Amsterdam
           Add /c to MSVC compiles

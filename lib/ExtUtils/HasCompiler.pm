@@ -87,8 +87,8 @@ sub can_compile_loadable_object {
 
 	my ($cc, $ccflags, $optimize, $cccdlflags, $ld, $lddlflags, $libperl, $perllibs) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags ld lddlflags libperl perllibs/;
 
+	Mksymlists(NAME => $basename, FILE => $abs_basename, IMPORTS => {}) if $prelinking{$^O};
 	my @commands;
-	Mksymlists(NAME => $basename, FILE => $abs_basename) if $prelinking{$^O};
 	if ($^O eq 'MSWin32' && $cc =~ /^cl/) {
 		push @commands, qq{$cc $ccflags $cccdlflags $optimize /I "$incdir" /c $source_name /Fo$object_file};
 		push @commands, qq{$ld $object_file $lddlflags $libperl $perllibs /out:$loadable_object /def:$abs_basename.def /pdb:$abs_basename.pdb};
