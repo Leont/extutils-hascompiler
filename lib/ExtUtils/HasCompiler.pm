@@ -84,7 +84,7 @@ sub can_compile_loadable_object {
 	my $loadable_object = $abs_basename . '.' . $config->get('dlext');
 	my $incdir = catdir($config->get('archlibexp'), 'CORE');
 
-	my ($cc, $ccflags, $optimize, $cccdlflags, $ld, $lddlflags, $libperl, $perllibs) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags ld lddlflags libperl perllibs/;
+	my ($cc, $ccflags, $optimize, $cccdlflags, $ld, $ldflags, $lddlflags, $libperl, $perllibs) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags ld ldflags lddlflags libperl perllibs/;
 
 	if ($prelinking{$^O}) {
 		require ExtUtils::Mksymlists;
@@ -96,9 +96,14 @@ sub can_compile_loadable_object {
 		push @commands, qq{$ld $object_file $lddlflags $libperl $perllibs /out:$loadable_object /def:$abs_basename.def /pdb:$abs_basename.pdb};
 	}
 	elsif ($^O eq 'VMS') {
+		# Mksymlists is only the beginning of the story.
+		open my $opt_fh, '>>', "$abs_basename.opt" or do { carp "Couldn't append to '$abs_basename.opt'"; return };
+		print $opt_fh "PerlShr/Share\n";
+		close $opt_fh;
+
 		my $incdirs = $ccflags =~ s{ /inc[^=]+ (?:=)+ (?:\()? ( [^\/\)]* ) }{}xi ? "$1,$incdir" : $incdir;
 		push @commands, qq{$cc $ccflags $optimize /include=($incdirs) $cccdlflags $source_name /obj=$object_file};
-		push @commands, qq{$cc $optimize $lddlflags=$loadable_object $object_file,$abs_basename.opt/OPTIONS,${incdir}perlshr_attr.opt/OPTIONS' $perllibs};
+		push @commands, qq{$ld $ldflags $lddlflags=$loadable_object $object_file,$abs_basename.opt/OPTIONS,${incdir}perlshr_attr.opt/OPTIONS' $perllibs};
 	}
 	else {
 		my @extra;
@@ -126,6 +131,7 @@ sub can_compile_loadable_object {
 	return 1 if exists $args{skip_load} ? $args{skip_load} : $config->get('usecrosscompile');
 
 	require DynaLoader;
+	local @DynaLoader::dl_require_symbols = "boot_$basename";
 	my $handle = DynaLoader::dl_load_file($loadable_object, 0);
 	if ($handle) {
 		my $symbol = DynaLoader::dl_find_symbol($handle, "boot_$basename");
