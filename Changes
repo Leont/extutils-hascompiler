@@ -1,6 +1,7 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          Only load mksymlists if needed
 
 0.011     2015-07-08 22:54:00+02:00 Europe/Amsterdam
           Always define IMPORTS argument to Mksymlists
