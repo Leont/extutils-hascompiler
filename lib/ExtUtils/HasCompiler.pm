@@ -12,6 +12,7 @@ use Carp 'carp';
 use File::Basename 'basename';
 use File::Spec::Functions qw/catfile catdir/;
 use File::Temp qw/tempdir tempfile/;
+use IPC::Open3;
 
 my $tempdir = tempdir(CLEANUP => 1);
 
@@ -118,8 +119,21 @@ sub can_compile_loadable_object {
 	}
 
 	for my $command (@commands) {
-		print "$command\n" if not $args{quiet};
-		system $command and do { carp "Couldn't execute $command: $!"; return };
+		print "$command\n" if $args{verbose};
+		if ($^O eq 'VMS') {
+			system $command and do { carp "Command $command return $?"; return };
+		}
+		else {
+			my ($in, $out);
+			my $pid = eval { open3($in, $out, '', $command) } or do { carp $@; return };
+			close $in;
+			my $output = do { local $/; <$out> };
+			waitpid $pid, 0;
+			if ($? != 0) {
+				carp "Command $command returned $?: $output";
+				return;
+			};
+		}
 	}
 
 	# Skip loading when cross-compiling
@@ -162,9 +176,9 @@ This checks if the system can compile, link and load a perl loadable object. It 
 
 =over 4
 
-=item * quiet
+=item * verbose
 
-Do not output the executed compilation commands.
+Output the executed compilation commands before running them.
 
 =item * config
 
