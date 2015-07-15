@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.012     2015-07-15 16:55:46+02:00 Europe/Amsterdam
           Fixes for VMS
           Only load mksymlists if needed
 
