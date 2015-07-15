@@ -134,12 +134,12 @@ sub can_compile_loadable_object {
 	local @DynaLoader::dl_require_symbols = "boot_$basename";
 	my $handle = DynaLoader::dl_load_file($loadable_object, 0);
 	if ($handle) {
-		my $symbol = DynaLoader::dl_find_symbol($handle, "boot_$basename");
+		my $symbol = DynaLoader::dl_find_symbol($handle, "boot_$basename") or do { carp "Couldn't find boot symbol for $basename"; return };
 		my $compilet = DynaLoader::dl_install_xsub('__ANON__::__ANON__', $symbol, $source_name);
 		my $ret = eval { $compilet->(); $package->exported } or carp $@;
 		delete $ExtUtils::HasCompiler::{"$shortname\::"};
 		eval { DynaLoader::dl_unload_file($handle) } or carp $@;
-		return $ret == 42;
+		return defined $ret && $ret == 42;
 	}
 	else {
 		carp "Couldn't load $loadable_object: " . DynaLoader::dl_error();
