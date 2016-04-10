@@ -118,6 +118,9 @@ sub can_compile_loadable_object {
 			$lddlflags =~ s/\Q$(BASEEXT)\E/$abs_basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
 		}
+		elsif ($^O eq 'android') {
+			push @extra, qq{"-L$incdir"}, '-lperl', $perllibs;
+		}
 		push @commands, qq{$cc $ccflags $optimize "-I$incdir" $cccdlflags -c $source_name -o $object_file};
 		push @commands, qq{$cc $optimize $object_file -o $loadable_object $lddlflags @extra};
 	}
@@ -132,7 +135,7 @@ sub can_compile_loadable_object {
 
 	require DynaLoader;
 	local @DynaLoader::dl_require_symbols = "boot_$basename";
-	my $handle = DynaLoader::dl_load_file($loadable_object, 0);
+	my $handle = DynaLoader::dl_load_file(File::Spec->rel2abs($loadable_object), 0);
 	if ($handle) {
 		my $symbol = DynaLoader::dl_find_symbol($handle, "boot_$basename") or do { carp "Couldn't find boot symbol for $basename"; return };
 		my $compilet = DynaLoader::dl_install_xsub('__ANON__::__ANON__', $symbol, $source_name);

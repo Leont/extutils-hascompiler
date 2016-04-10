@@ -2,6 +2,7 @@ Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
           Only add perllibs on platforms that really need it
+          Add support for Android
 
 0.012     2015-07-15 16:55:46+02:00 Europe/Amsterdam
           Fixes for VMS
