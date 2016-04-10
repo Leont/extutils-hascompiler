@@ -108,8 +108,8 @@ sub can_compile_loadable_object {
 	else {
 		my @extra;
 		if ($^O eq 'MSWin32') {
-			push @extra, "$abs_basename.def";
-			push @extra, '-l' . ($libperl =~ /lib([^.]+)\./)[0];
+			my $lib = '-l' . ($libperl =~ /lib([^.]+)\./)[0];
+			push @extra, "$abs_basename.def", $lib, $perllibs;
 		}
 		elsif ($^O eq 'cygwin') {
 			push @extra, catfile($incdir, $config->get('useshrplib') ? 'libperl.dll.a' : 'libperl.a');
@@ -119,7 +119,7 @@ sub can_compile_loadable_object {
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
 		}
 		push @commands, qq{$cc $ccflags $optimize "-I$incdir" $cccdlflags -c $source_name -o $object_file};
-		push @commands, qq{$cc $optimize $object_file -o $loadable_object $lddlflags @extra $perllibs};
+		push @commands, qq{$cc $optimize $object_file -o $loadable_object $lddlflags @extra};
 	}
 
 	for my $command (@commands) {
