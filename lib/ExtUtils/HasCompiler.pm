@@ -10,7 +10,7 @@ our %EXPORT_TAGS = (all => \@EXPORT_OK);
 use Config;
 use Carp 'carp';
 use File::Basename 'basename';
-use File::Spec::Functions qw/catfile catdir/;
+use File::Spec::Functions qw/catfile catdir rel2abs/;
 use File::Temp qw/tempdir tempfile/;
 
 my $tempdir = tempdir(CLEANUP => 1);
@@ -135,7 +135,7 @@ sub can_compile_loadable_object {
 
 	require DynaLoader;
 	local @DynaLoader::dl_require_symbols = "boot_$basename";
-	my $handle = DynaLoader::dl_load_file(File::Spec->rel2abs($loadable_object), 0);
+	my $handle = DynaLoader::dl_load_file(rel2abs($loadable_object), 0);
 	if ($handle) {
 		my $symbol = DynaLoader::dl_find_symbol($handle, "boot_$basename") or do { carp "Couldn't find boot symbol for $basename"; return };
 		my $compilet = DynaLoader::dl_install_xsub('__ANON__::__ANON__', $symbol, $source_name);
