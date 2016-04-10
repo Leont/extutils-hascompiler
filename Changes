@@ -1,6 +1,7 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          - Fix eucb test to check result object [#113686]
 
 0.014     2016-05-02 10:13:47+02:00 Europe/Amsterdam
           - Create temporary directory under local directory
