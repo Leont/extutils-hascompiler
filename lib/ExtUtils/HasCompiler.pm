@@ -68,6 +68,8 @@ my %prelinking = map { $_ => 1 } qw/MSWin32 VMS aix/;
 sub can_compile_loadable_object {
 	my %args = @_;
 
+	my $output = $args{output} || \*STDOUT;
+
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
 	return if not $config->get('usedl');
 
@@ -126,7 +128,7 @@ sub can_compile_loadable_object {
 	}
 
 	for my $command (@commands) {
-		print "$command\n" if not $args{quiet};
+		print $output "$command\n" if not $args{quiet};
 		system $command and do { carp "Couldn't execute $command: $!"; return };
 	}
 
