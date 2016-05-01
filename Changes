@@ -1,6 +1,7 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          - Create temporary directory under local directory
 
 0.013     2016-04-10 14:28:36+02:00 Europe/Amsterdam
           Only add perllibs on platforms that really need it

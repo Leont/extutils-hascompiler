@@ -13,7 +13,7 @@ use File::Basename 'basename';
 use File::Spec::Functions qw/catfile catdir rel2abs/;
 use File::Temp qw/tempdir tempfile/;
 
-my $tempdir = tempdir(CLEANUP => 1);
+my $tempdir = tempdir(CLEANUP => 1, DIR => '.');
 
 my $loadable_object_format = <<'END';
 #define PERL_NO_GET_CONTEXT
