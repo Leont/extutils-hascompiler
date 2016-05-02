@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.014     2016-05-02 10:13:47+02:00 Europe/Amsterdam
           - Create temporary directory under local directory
           - Use better temp template names
 
