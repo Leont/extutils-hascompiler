@@ -13,7 +13,7 @@ use File::Basename 'basename';
 use File::Spec::Functions qw/catfile catdir rel2abs/;
 use File::Temp qw/tempdir tempfile/;
 
-my $tempdir = tempdir(CLEANUP => 1, DIR => '.');
+my $tempdir = tempdir('HASCOMPILERXXXX', CLEANUP => 1, DIR => '.');
 
 my $loadable_object_format = <<'END';
 #define PERL_NO_GET_CONTEXT
@@ -73,7 +73,7 @@ sub can_compile_loadable_object {
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
 	return if not $config->get('usedl');
 
-	my ($source_handle, $source_name) = tempfile(DIR => $tempdir, SUFFIX => '.c', UNLINK => 1);
+	my ($source_handle, $source_name) = tempfile('TESTXXXX', DIR => $tempdir, SUFFIX => '.c', UNLINK => 1);
 	my $basename = basename($source_name, '.c');
 
 	my $shortname = '_Loadable' . $counter++;
