@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.015     2016-06-19 01:17:56+02:00 Europe/Amsterdam (TRIAL RELEASE)
           - Fix eucb test to check result object [#113686]
           - Use $Config{ld} on unix too
 
