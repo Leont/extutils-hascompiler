@@ -109,6 +109,7 @@ sub can_compile_loadable_object {
 	}
 	else {
 		my @extra;
+		my @optimize = $optimize;
 		if ($^O eq 'MSWin32') {
 			my $lib = '-l' . ($libperl =~ /lib([^.]+)\./)[0];
 			push @extra, "$abs_basename.def", $lib, $perllibs;
@@ -119,12 +120,14 @@ sub can_compile_loadable_object {
 		elsif ($^O eq 'aix') {
 			$lddlflags =~ s/\Q$(BASEEXT)\E/$abs_basename/;
 			$lddlflags =~ s/\Q$(PERL_INC)\E/$incdir/;
+			# ld on AIX 5 does not accept an -O flag
+			@optimize = ();
 		}
 		elsif ($^O eq 'android') {
 			push @extra, qq{"-L$incdir"}, '-lperl', $perllibs;
 		}
 		push @commands, qq{$cc $ccflags $optimize "-I$incdir" $cccdlflags -c $source_name -o $object_file};
-		push @commands, qq{$ld $optimize $object_file -o $loadable_object $lddlflags @extra};
+		push @commands, qq{$ld @optimize $object_file -o $loadable_object $lddlflags @extra};
 	}
 
 	for my $command (@commands) {
