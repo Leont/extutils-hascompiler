@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          - Fix compilation test on AIX5. The ld command does not accept an -O
+            flag. (Dave Rolsky, GH #8)
 
 0.016     2016-07-05 10:06:29+02:00 Europe/Amsterdam
           - Stable release without modifications since 0.015
