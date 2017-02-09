@@ -1,6 +1,10 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          - Don't pass the compiler's optimization flags to the ld command. On
+            systems where these two commands are different (AIX and some
+            version of HPUX among them), the ld command may not accept these
+            optimization flags. (Dave Rolsky, GH #9)
 
 0.017     2017-02-08 23:00:22+01:00 Europe/Amsterdam
           - Don't pass the compiler's optimization flags to the ld command. On
