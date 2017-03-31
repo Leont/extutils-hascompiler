@@ -75,23 +75,14 @@ sub can_compile_loadable_object {
 
 	my ($source_handle, $source_name) = tempfile('TESTXXXX', DIR => $tempdir, SUFFIX => '.c', UNLINK => 1);
 	my $basename = basename($source_name, '.c');
-
-	my $shortname = '_Loadable' . $counter++;
-	my $package = "ExtUtils::HasCompiler::$shortname";
-	printf $source_handle $loadable_object_format, $basename, $package or do { carp "Couldn't write to $source_name: $!"; return };
-	close $source_handle or do { carp "Couldn't close $source_name: $!"; return };
-
 	my $abs_basename = catfile($tempdir, $basename);
-	my $object_file = $abs_basename . $config->get('_o');
-	my $loadable_object = $abs_basename . '.' . $config->get('dlext');
-	my $incdir = catdir($config->get('archlibexp'), 'CORE');
 
-	my ($cc, $ccflags, $optimize, $cccdlflags, $ld, $ldflags, $lddlflags, $libperl, $perllibs) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags ld ldflags lddlflags libperl perllibs/;
+	my ($cc, $ccflags, $optimize, $cccdlflags, $ld, $ldflags, $lddlflags, $libperl, $perllibs, $archlibexp, $_o, $dlext) = map { $config->get($_) } qw/cc ccflags optimize cccdlflags ld ldflags lddlflags libperl perllibs archlibexp _o dlext/;
 
-	if ($prelinking{$^O}) {
-		require ExtUtils::Mksymlists;
-		ExtUtils::Mksymlists::Mksymlists(NAME => $basename, FILE => $abs_basename, IMPORTS => {});
-	}
+	my $incdir = catdir($archlibexp, 'CORE');
+	my $object_file = $abs_basename.$_o;
+	my $loadable_object = "$abs_basename.$dlext";
+
 	my @commands;
 	if ($^O eq 'MSWin32' && $cc =~ /^cl/) {
 		push @commands, qq{$cc $ccflags $cccdlflags $optimize /I "$incdir" /c $source_name /Fo$object_file};
@@ -126,6 +117,16 @@ sub can_compile_loadable_object {
 		push @commands, qq{$cc $ccflags $optimize "-I$incdir" $cccdlflags -c $source_name -o $object_file};
 		push @commands, qq{$ld $object_file -o $loadable_object $lddlflags @extra};
 	}
+
+	if ($prelinking{$^O}) {
+		require ExtUtils::Mksymlists;
+		ExtUtils::Mksymlists::Mksymlists(NAME => $basename, FILE => $abs_basename, IMPORTS => {});
+	}
+
+	my $shortname = '_Loadable' . $counter++;
+	my $package = "ExtUtils::HasCompiler::$shortname";
+	printf $source_handle $loadable_object_format, $basename, $package or do { carp "Couldn't write to $source_name: $!"; return };
+	close $source_handle or do { carp "Couldn't close $source_name: $!"; return };
 
 	for my $command (@commands) {
 		print $output "$command\n" if not $args{quiet};
