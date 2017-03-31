@@ -1,6 +1,9 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+          - can_compile_static_library and can_compile_extension
+            The former checks if one can compile a static library, the latter
+            checks for dynamic or static depending on your configuration.
 
 0.017     2017-02-08 23:00:22+01:00 Europe/Amsterdam
           - Don't pass the compiler's optimization flags to the ld command. On
