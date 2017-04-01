@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More 0.82 tests => 1;
+use Test::More 0.82 tests => 3;
 use ExtUtils::HasCompiler ':all';
 use File::Temp 'tempfile';
 
@@ -16,7 +16,7 @@ use File::Temp 'tempdir';
 
 my $Makefile_PL = <<'END';
 use ExtUtils::MakeMaker;
-WriteMakefile(NAME => 'EUHC::Test');
+WriteMakefile(NAME => 'EUHC::Test', %s);
 END
 
 my $PM_file = <<'END';
@@ -45,22 +45,32 @@ use EUHC::Test;
 ok EUHC::Test::compiled_xs(), 'compiled_xs returns true';
 END
 
-my @warnings;
-local $SIG{__WARN__} = sub { push @warnings, @_ };
-my $output;
-my $filename = $] >= 5.008 ? \$output : devnull;
-open my $fh, '>', $filename;
-my $can_compile = can_compile_loadable_object(output => $fh);
-note($output);
-my $can = $can_compile ? 'can' : "can't";
-is($can_compile, compile_with_mm(), "MakeMaker agrees we $can compile") or diag(@warnings);
+my %types = (
+	static  => \&can_compile_static_library,
+	dynamic => \&can_compile_loadable_object,
+	default => \&can_compile_extension,
+);
+
+for my $linktype (reverse sort keys %types) {
+	my $checker = $types{$linktype};
+	my @warnings;
+	local $SIG{__WARN__} = sub { push @warnings, @_ };
+	my $output;
+	my $filename = $] >= 5.008 ? \$output : devnull;
+	open my $fh, '>', $filename;
+	my $can_compile = $checker->(output => $fh);
+	note($output);
+	my $can = $can_compile ? 'can' : "can't";
+	is($can_compile, compile_with_mm($linktype), "MakeMaker agrees we $can compile $linktype") or diag(@warnings);
+}
 
 sub compile_with_mm {
+	my $linktype = shift;
 	my $cwd = cwd;
 	my $ret = eval {
 		local $SIG{__DIE__} = sub { warn $_[0] };
 		chdir tempdir(CLEANUP => 1);
-		write_file('Makefile.PL', $Makefile_PL);
+		write_file('Makefile.PL', sprintf $Makefile_PL, $linktype eq 'default' ? '' : "LINKTYPE => '$linktype'");
 		mkpath(catdir(qw/lib EUHC/));
 		write_file(catfile(qw/lib EUHC Test.pm/), $PM_file);
 		write_file('Test.xs', $XS_file);
