@@ -3,7 +3,8 @@
 use strict;
 use warnings;
 
-use Test::More 0.82 tests => 3;
+use Test::More tests => 3;
+BEGIN { *note = \&diag if not defined &note };
 use ExtUtils::HasCompiler ':all';
 use File::Temp 'tempfile';
 
