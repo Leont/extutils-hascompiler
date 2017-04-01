@@ -263,6 +263,8 @@ Do not output the executed compilation commands.
 
 An L<ExtUtils::Config|ExtUtils::Config> (compatible) object for configuration.
 
+=back
+
 =func can_compile_extension(%opts)
 
 This will call either C<can_compile_loadable_object>, or C<can_compile_static_library>, depending on which is the default on your configuration. In addition to the arguments listed above, it can take one more optional argument:
@@ -272,7 +274,5 @@ This will call either C<can_compile_loadable_object>, or C<can_compile_static_li
 =item * linktype
 
 This will force the linktype to be either static or dynamic. Dynamic compilation on a static perl won't work, but static libraries can be viable on a dynamic perl.
-
-=back
 
 =back
