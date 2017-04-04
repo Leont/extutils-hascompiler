@@ -170,7 +170,7 @@ sub can_compile_static_library {
 	my $static_library = $abs_basename.$lib_ext;
 
 	my @commands;
-	if ($^O eq 'VMS') {
+	if ($^O eq 'VMS' or $^O eq 'aix') {
 		return;
 	}
 	elsif ($^O eq 'MSWin32' && $cc =~ /^cl/) {
