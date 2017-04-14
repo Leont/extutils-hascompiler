@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.018     2017-04-14 18:09:34+02:00 Europe/Amsterdam (TRIAL RELEASE)
           - can_compile_static_library and can_compile_extension
             The former checks if one can compile a static library, the latter
             checks for dynamic or static depending on your configuration.
