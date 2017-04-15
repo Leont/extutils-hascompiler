@@ -179,7 +179,7 @@ sub can_compile_static_library {
 		push @commands, qq{$my_ar /out:$static_library $object_file};
 	}
 	else {
-		my $my_ar = defined $full_ar ? $full_ar : $ar;
+		my $my_ar = length $full_ar ? $full_ar : $ar;
 		push @commands, qq{$cc $ccflags $optimize "-I$incdir" -c $source_name -o $object_file};
 		push @commands, qq{$my_ar cr $static_library $object_file};
 		push @commands, qq{$ranlib $static_library} if $ranlib ne ':';
