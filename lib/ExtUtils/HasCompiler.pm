@@ -153,6 +153,7 @@ sub can_compile_loadable_object {
 	}
 }
 
+my %static_unsupported_on = map { $_ => 1 } qw/VMS aix MSWin32 cygwin/;
 sub can_compile_static_library {
 	my %args = @_;
 
@@ -170,13 +171,8 @@ sub can_compile_static_library {
 	my $static_library = $abs_basename.$lib_ext;
 
 	my @commands;
-	if ($^O eq 'VMS' or $^O eq 'aix') {
+	if ($static_unsupported_on{$^O}) {
 		return;
-	}
-	elsif ($^O eq 'MSWin32' && $cc =~ /^cl/) {
-		my $my_ar = $ar || 'lib';
-		push @commands, qq{$cc $ccflags $optimize /I "$incdir" /c $source_name /Fo$object_file};
-		push @commands, qq{$my_ar /out:$static_library $object_file};
 	}
 	else {
 		my $my_ar = length $full_ar ? $full_ar : $ar;
