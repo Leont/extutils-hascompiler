@@ -54,6 +54,7 @@ my %types = (
 
 for my $linktype (reverse sort keys %types) {
 	my $checker = $types{$linktype};
+	next if $linktype eq 'static' && !$ENV{AUTHOR_TESTING} && eval { require ExtUtils::MakeMaker; ExtUtils::MakeMaker->VERSION('7.26') };
 	my @warnings;
 	local $SIG{__WARN__} = sub { push @warnings, @_ };
 	my $output;
