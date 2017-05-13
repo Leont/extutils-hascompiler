@@ -3,6 +3,7 @@ Revision history for ExtUtils-HasCompiler
 {{$NEXT}}
           - Skip static tests unless user has EUMM 7.26
           - Can't compile static libraries on Windows
+          - Can't compile static libraries on shrplib perls
 
 0.018     2017-04-14 18:09:34+02:00 Europe/Amsterdam (TRIAL RELEASE)
           - can_compile_static_library and can_compile_extension

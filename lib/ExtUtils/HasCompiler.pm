@@ -160,6 +160,7 @@ sub can_compile_static_library {
 	my $output = $args{output} || \*STDOUT;
 
 	my $config = $args{config} || 'ExtUtils::HasCompiler::Config';
+	return if $config->get('useshrplib') eq 'true';
 
 	my ($source_handle, $source_name) = tempfile('TESTXXXX', DIR => $tempdir, SUFFIX => '.c', UNLINK => 1);
 	my $basename = basename($source_name, '.c');
