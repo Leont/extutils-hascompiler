@@ -54,16 +54,18 @@ my %types = (
 
 for my $linktype (reverse sort keys %types) {
 	my $checker = $types{$linktype};
-	next if $linktype eq 'static' && !$ENV{AUTHOR_TESTING} && eval { require ExtUtils::MakeMaker; ExtUtils::MakeMaker->VERSION('7.26') };
-	my @warnings;
-	local $SIG{__WARN__} = sub { push @warnings, @_ };
-	my $output;
-	my $filename = $] >= 5.008 ? \$output : devnull;
-	open my $fh, '>', $filename;
-	my $can_compile = $checker->(output => $fh);
-	note($output);
-	my $can = $can_compile ? 'can' : "can't";
-	is($can_compile, compile_with_mm($linktype), "MakeMaker agrees we $can compile $linktype") or diag(@warnings);
+	SKIP: {
+		skip 'static is unreliable on EUMM < 7.26', 1 if $linktype eq 'static' && !$ENV{AUTHOR_TESTING} && not eval { require ExtUtils::MakeMaker; ExtUtils::MakeMaker->VERSION('7.26') };
+		my @warnings;
+		local $SIG{__WARN__} = sub { push @warnings, @_ };
+		my $output;
+		my $filename = $] >= 5.008 ? \$output : devnull;
+		open my $fh, '>', $filename;
+		my $can_compile = $checker->(output => $fh);
+		note($output);
+		my $can = $can_compile ? 'can' : "can't";
+		is($can_compile, compile_with_mm($linktype), "MakeMaker agrees we $can compile $linktype") or diag(@warnings);
+	}
 }
 
 sub compile_with_mm {
