@@ -2,6 +2,9 @@ Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
 
+0.021     2017-06-26 14:37:05+02:00 Europe/Amsterdam
+          Released 0.020 as 0.021
+
 0.020     2017-05-14 15:28:51+02:00 Europe/Paris (TRIAL RELEASE)
           - Fix skipping tests on EUMM<7.26
 
