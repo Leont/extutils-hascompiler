@@ -104,7 +104,7 @@ sub can_compile_loadable_object {
 			my $lib = '-l' . ($libperl =~ /lib([^.]+)\./)[0];
 			push @extra, "$abs_basename.def", $lib, $perllibs;
 		}
-		elsif ($^O eq 'cygwin') {
+		elsif ($^O =~ /^(cygwin|msys)$/) {
 			push @extra, catfile($incdir, $config->get('useshrplib') ? 'libperl.dll.a' : 'libperl.a');
 		}
 		elsif ($^O eq 'aix') {
