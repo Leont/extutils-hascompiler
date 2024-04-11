@@ -1,6 +1,8 @@
 Revision history for ExtUtils-HasCompiler
 
 {{$NEXT}}
+
+0.024     2024-04-11 14:43:48+02:00 Europe/Brussels
           - Make temporary dir absolute
 
 0.023     2020-12-24 15:10:29+01:00 Europe/Amsterdam
