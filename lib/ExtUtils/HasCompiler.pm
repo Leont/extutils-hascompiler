@@ -10,10 +10,10 @@ our %EXPORT_TAGS = (all => \@EXPORT_OK);
 use Config;
 use Carp 'carp';
 use File::Basename 'basename';
-use File::Spec::Functions qw/catfile catdir rel2abs/;
+use File::Spec::Functions qw/catfile catdir rel2abs curdir/;
 use File::Temp qw/tempdir tempfile/;
 
-my $tempdir = tempdir('HASCOMPILERXXXX', CLEANUP => 1, DIR => '.');
+my $tempdir = tempdir('HASCOMPILERXXXX', CLEANUP => 1, DIR => rel2abs(curdir));
 
 my $loadable_object_format = <<'END';
 #define PERL_NO_GET_CONTEXT
